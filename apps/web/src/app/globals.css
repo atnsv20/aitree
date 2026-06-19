@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo,
+    Consolas, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white text-slate-600 antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply text-slate-900 tracking-tight;
+  }
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-xl border border-line bg-white;
+  }
+  .panel-hover {
+    @apply transition-all duration-200 hover:border-slate-300 hover:shadow-soft-md;
+  }
+  .container-page {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+  }
+  /* Subtle dotted grid used sparingly behind the hero. */
+  .grid-bg {
+    background-image: radial-gradient(
+      rgba(15, 23, 42, 0.05) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+}

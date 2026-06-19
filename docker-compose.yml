@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aitree-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: aitree
+      POSTGRES_PASSWORD: aitree
+      POSTGRES_DB: aitree
+    ports:
+      - "5433:5432"
+    volumes:
+      - aitree_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aitree -d aitree"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  aitree_pgdata:

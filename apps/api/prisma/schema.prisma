@@ -1,0 +1,152 @@
+// Prisma schema for the AI Progress Tech Tree.
+// Datasource: PostgreSQL. Client: default JS client.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Momentum {
+  SLOW
+  MEDIUM
+  FAST
+  VERY_FAST
+}
+
+enum Confidence {
+  A
+  B
+  C
+  D
+}
+
+enum NodeStatus {
+  LOCKED
+  EMERGING
+  ACTIVE
+  ACHIEVED
+  CONTESTED
+  DANGEROUS
+}
+
+enum EventType {
+  MODEL_RELEASE
+  BENCHMARK
+  RESEARCH_PAPER
+  PRODUCT_LAUNCH
+  ADOPTION
+  REGULATION
+  SAFETY_INCIDENT
+  EXPERT_ANALYSIS
+}
+
+model Route {
+  id              Int      @id @default(autoincrement())
+  slug            String   @unique
+  title           String
+  shortTitle      String
+  description     String
+  capabilityIndex Int
+  momentum        Momentum
+  confidence      Confidence
+  lastUpdated     DateTime
+  colorToken      String   @default("cyan")
+  orderIndex      Int      @default(0)
+  featured        Boolean  @default(false)
+
+  nodes         Node[]
+  eventImpacts  EventRouteImpact[]
+  blogPosts     BlogPost[]         @relation("BlogRoutes")
+  glossaryTerms GlossaryTerm[]     @relation("GlossaryRoutes")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Node {
+  id                Int        @id @default(autoincrement())
+  slug              String     @unique
+  routeSlug         String
+  route             Route      @relation(fields: [routeSlug], references: [slug], onDelete: Cascade)
+  title             String
+  description       String
+  status            NodeStatus
+  positionX         Int
+  positionY         Int
+  scoreContribution Float      @default(0)
+
+  // Self-relation: a node may have multiple parent nodes (prerequisites).
+  parents  Node[] @relation("NodeParents")
+  children Node[] @relation("NodeParents")
+
+  events        Event[]        @relation("EventNodes")
+  blogPosts     BlogPost[]     @relation("BlogNodes")
+  glossaryTerms GlossaryTerm[] @relation("GlossaryNodes")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id           Int       @id @default(autoincrement())
+  slug         String    @unique
+  title        String
+  date         DateTime
+  summary      String
+  whyItMatters String
+  eventType    EventType
+  confidence   Confidence
+  sourceUrls   String[]
+
+  routeImpacts EventRouteImpact[]
+  nodes        Node[]             @relation("EventNodes")
+  blogPosts    BlogPost[]         @relation("BlogEvents")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Explicit join carrying the per-route score delta for an event.
+model EventRouteImpact {
+  id      Int   @id @default(autoincrement())
+  eventId Int
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  routeId Int
+  route   Route @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  delta   Float
+
+  @@unique([eventId, routeId])
+}
+
+model BlogPost {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  title       String
+  description String
+  date        DateTime
+  content     String
+
+  routes Route[] @relation("BlogRoutes")
+  nodes  Node[]  @relation("BlogNodes")
+  events Event[] @relation("BlogEvents")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GlossaryTerm {
+  id         Int    @id @default(autoincrement())
+  slug       String @unique
+  term       String
+  definition String
+
+  routes Route[] @relation("GlossaryRoutes")
+  nodes  Node[]  @relation("GlossaryNodes")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
